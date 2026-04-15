@@ -1,0 +1,12 @@
+.idea/
+.vscode/
+.DS_Store
+
+**/bin/
+**/obj/
+**/*.user
+**/*.suo
+**/*.cache
+
+.env
+Sery.API/
