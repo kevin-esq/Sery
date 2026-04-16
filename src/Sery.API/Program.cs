@@ -2,9 +2,9 @@ using Asp.Versioning;
 using Asp.Versioning.ApiExplorer;
 using Microsoft.Extensions.Options;
 using Serilog;
-using Sery.Application;
 using Sery.API.Extensions;
 using Sery.API.Swagger;
+using Sery.Application;
 using Sery.Infrastructure;
 using Swashbuckle.AspNetCore.SwaggerGen;
 

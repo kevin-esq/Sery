@@ -1,25 +1,19 @@
 namespace Sery.API.Contracts.Chat;
 
 /// <summary>
-/// Accepted response for queued chat messages.
+/// Response payload for chat message processing.
 /// </summary>
 public sealed class SendMessageAcceptedResponse
 {
     /// <summary>
-    /// Unique identifier of the user who submitted the message.
+    /// Unique identifier of the conversation where the message was stored.
     /// </summary>
-    /// <example>7d06b9f5-2fdb-44d8-88e8-9b2c49a23c5a</example>
-    public Guid UserId { get; init; }
+    /// <example>31d4f6da-ebf1-4c7e-b8ca-f95cb6de8d53</example>
+    public Guid ConversationId { get; init; }
 
     /// <summary>
-    /// Sanitized message content.
+    /// Assistant response generated for the conversation.
     /// </summary>
-    /// <example>Hola Sery, hoy me siento nervioso.</example>
-    public string Message { get; init; } = string.Empty;
-
-    /// <summary>
-    /// Current processing state for the message.
-    /// </summary>
-    /// <example>queued</example>
-    public string Status { get; init; } = string.Empty;
+    /// <example>I hear you. Try taking one small step today and notice how it feels.</example>
+    public string AssistantMessage { get; init; } = string.Empty;
 }

@@ -17,7 +17,7 @@ public sealed class RequestContextLoggingMiddleware(
         context.Response.Headers[CorrelationHeaderName] = correlationId;
         context.Items[CorrelationHeaderName] = correlationId;
 
-        string? userId = context.User?.Identity?.IsAuthenticated == true
+        string? userId = context.User.Identity?.IsAuthenticated == true
             ? context.User.FindFirst("sub")?.Value ?? context.User.Identity?.Name
             : null;
 
@@ -29,11 +29,11 @@ public sealed class RequestContextLoggingMiddleware(
         using (LogContext.PushProperty("userId", userId ?? string.Empty))
         {
             using (logger.BeginScope(new Dictionary<string, object?>
-                   {
-                       ["CorrelationId"] = correlationId,
-                       ["Path"] = context.Request.Path.Value,
-                       ["Method"] = context.Request.Method
-                   }))
+            {
+                ["CorrelationId"] = correlationId,
+                ["Path"] = context.Request.Path.Value,
+                ["Method"] = context.Request.Method
+            }))
             {
                 await next(context);
 

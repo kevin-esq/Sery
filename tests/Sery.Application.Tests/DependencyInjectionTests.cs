@@ -1,5 +1,4 @@
 using Microsoft.Extensions.DependencyInjection;
-using Sery.Application;
 using Sery.Application.Chat;
 
 namespace Sery.Application.Tests;

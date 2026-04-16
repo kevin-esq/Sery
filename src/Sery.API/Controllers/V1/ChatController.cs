@@ -17,18 +17,18 @@ public sealed class ChatController(
     IApiProblemDetailsFactory problemDetailsFactory) : ControllerBase
 {
     /// <summary>
-    /// Queues a chat message to be processed by the application layer.
+    /// Processes a chat message and returns assistant response.
     /// </summary>
     /// <param name="request">User message payload.</param>
     /// <param name="cancellationToken">Cancellation token for request scope.</param>
-    /// <returns>Accepted response with queue metadata.</returns>
+    /// <returns>Response containing conversation id and assistant message.</returns>
     /// <remarks>
     /// Outcomes:
-    /// - 202: Message accepted and queued for processing.
+    /// - 200: Assistant response generated.
     /// - 400: Validation error when UserId is empty or Message is blank.
     /// </remarks>
     [HttpPost("message")]
-    [ProducesResponseType(typeof(SendMessageAcceptedResponse), StatusCodes.Status202Accepted)]
+    [ProducesResponseType(typeof(SendMessageAcceptedResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [Produces("application/json", "application/problem+json")]
     [Consumes("application/json")]
@@ -49,11 +49,10 @@ public sealed class ChatController(
         QueueMessageResult result = await chatMessageService.QueueMessageAsync(command, cancellationToken);
         var response = new SendMessageAcceptedResponse
         {
-            UserId = result.UserId,
-            Message = result.Message,
-            Status = result.Status
+            ConversationId = result.ConversationId,
+            AssistantMessage = result.AssistantMessage
         };
 
-        return Accepted(response);
+        return Ok(response);
     }
 }

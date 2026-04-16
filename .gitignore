@@ -1,11 +1,42 @@
+# === IDEs & Editors ===
 .idea/
 .vscode/
+*.swp
+*.sublime-project
+*.sublime-workspace
 .DS_Store
+Thumbs.db
 
+# === Analysis & Tooling ===
+.trunk/
+
+# === .NET Core / C# (Build & Binaries) ===
 **/bin/
 **/obj/
 **/*.user
+**/*.userosscache
+**/*.sln.docstates
 **/*.suo
 **/*.cache
+**/*.dbmdl
+**/*.jfm
 
+# === Packages & Dependencies ===
+*.nupkg
+**/packages/*
+!**/packages/repositories.config
+**/node_modules/
+
+# === Secrets & Environment Config ===
 .env
+.env.*
+!.env.example
+# Protect local development settings across all projects
+**/appsettings.Development.json
+**/appsettings.Production.json
+**/appsettings.Local.json
+
+# === Logs & Temporals ===
+*.log
+*.tmp
+.attachments/

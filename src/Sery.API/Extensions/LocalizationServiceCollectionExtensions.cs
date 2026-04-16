@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Localization;
-using Microsoft.Extensions.DependencyInjection;
 using Sery.API.Common;
 
 namespace Sery.API.Extensions;
