@@ -5,7 +5,7 @@ namespace Sery.Domain.Tests;
 public class UserProfileTests
 {
     [Fact]
-    public void UpdateDisplayName_ShouldTrimAndAssignValue()
+    public void UpdateDisplayName_ShouldTrimAndAssignValue_WhenInputContainsExtraSpaces()
     {
         var user = new UserProfile();
 

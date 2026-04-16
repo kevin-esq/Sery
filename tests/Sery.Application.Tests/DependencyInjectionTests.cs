@@ -1,17 +1,19 @@
 using Microsoft.Extensions.DependencyInjection;
 using Sery.Application;
+using Sery.Application.Chat;
 
 namespace Sery.Application.Tests;
 
 public class DependencyInjectionTests
 {
     [Fact]
-    public void AddApplication_ShouldReturnServiceCollection()
+    public void AddApplication_ShouldRegisterChatService_WhenCalled()
     {
         var services = new ServiceCollection();
 
-        var result = services.AddApplication();
+        services.AddApplication();
+        ServiceDescriptor? descriptor = services.FirstOrDefault(x => x.ServiceType == typeof(IChatMessageService));
 
-        Assert.Same(services, result);
+        Assert.NotNull(descriptor);
     }
 }

@@ -16,7 +16,7 @@ Sery is an AI-powered emotional companion focused on meaningful interaction, per
 - `src/Sery.Infrastructure`: External integrations and infrastructure adapters.
 - `src/Sery.API`: HTTP API and controllers.
 - `tests/*`: Unit and integration tests.
-- `docs`: Architecture docs and ADRs.
+- `docs`: Technical documentation ([index](docs/README.md)).
 
 ## Getting Started
 
@@ -32,15 +32,22 @@ dotnet build Sery.sln
 dotnet test Sery.sln
 ```
 
+Tests include **`Sery.Architecture.Tests`** (layer dependencies and `Controllers/V{n}/` conventions). Shared editor settings: [.editorconfig](.editorconfig).
+
 ### Run API
 
 ```bash
 dotnet run --project src/Sery.API/Sery.API.csproj
 ```
 
-Default Swagger endpoint:
+Default Swagger endpoint (Development):
 
 - `https://localhost:5001/swagger` (or the port reported in terminal)
+- OpenAPI JSON per version: `/swagger/v1/swagger.json`
+
+Example versioned API base path:
+
+- `/api/v1/...` (current)
 
 ## Docker
 
@@ -60,6 +67,5 @@ docker run --rm -p 8080:8080 sery-api
 
 ## Documentation
 
-- Architecture: `docs/ARCHITECTURE.md`
-- ADR index: `docs/adr/README.md`
-- Product specification: `Sery_Product_Specification.md`
+- **Documentation index**: [docs/README.md](docs/README.md)
+- Product specification: [Sery_Product_Specification.md](Sery_Product_Specification.md)
