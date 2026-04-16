@@ -31,6 +31,7 @@ Sery follows a layered architecture using a modular monolith approach for MVP sp
 - `tests/Sery.Domain.Tests`: domain unit tests.
 - `tests/Sery.Application.Tests`: application behavior/unit tests.
 - `tests/Sery.API.IntegrationTests`: API integration endpoints.
+- `tests/Sery.Architecture.Tests`: layer dependency rules and API controller folder conventions ([NetArchTest.Rules](https://www.nuget.org/packages/NetArchTest.Rules)).
 
 ## Dependency Rules
 
@@ -43,4 +44,4 @@ Sery follows a layered architecture using a modular monolith approach for MVP sp
 
 - Keep modular monolith while validating product.
 - Extract services by bounded context only when needed (scale/team/cost reasons).
-- Record architecture decisions in ADRs under `docs/adr`.
+- Record architecture decisions in ADRs under [../adr](../adr).
