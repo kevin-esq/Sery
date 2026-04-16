@@ -9,4 +9,4 @@
 **/*.cache
 
 .env
-Sery.API/
+/Sery.API/
