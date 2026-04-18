@@ -4,6 +4,8 @@ public sealed class ChatAIOptions
 {
     public const string SectionName = "ChatAI";
 
+    public string Provider { get; init; } = "ollama";
+
     public string BaseUrl { get; init; } = "https://api.openai.com";
     public string Model { get; init; } = "gpt-4o-mini";
     public string ApiKey { get; init; } = string.Empty;
