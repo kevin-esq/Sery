@@ -78,13 +78,62 @@ namespace Sery.Infrastructure.Persistence.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<string>("PreferredLanguage")
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
 
+                    b.HasIndex("Email")
+                        .IsUnique();
+
                     b.ToTable("users", (string)null);
+                });
+
+            modelBuilder.Entity("Sery.Domain.Entities.UserSession", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DeviceInfo")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("IpAddress")
+                        .HasColumnType("text");
+
+                    b.Property<string>("RefreshTokenHash")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RefreshTokenHash")
+                        .IsUnique();
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("user_sessions", (string)null);
                 });
 
             modelBuilder.Entity("Sery.Domain.Entities.Conversation", b =>
@@ -109,6 +158,17 @@ namespace Sery.Infrastructure.Persistence.Migrations
                     b.Navigation("Conversation");
                 });
 
+            modelBuilder.Entity("Sery.Domain.Entities.UserSession", b =>
+                {
+                    b.HasOne("Sery.Domain.Entities.User", "User")
+                        .WithMany("Sessions")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Sery.Domain.Entities.Conversation", b =>
                 {
                     b.Navigation("Messages");
@@ -117,6 +177,8 @@ namespace Sery.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("Sery.Domain.Entities.User", b =>
                 {
                     b.Navigation("Conversations");
+
+                    b.Navigation("Sessions");
                 });
 #pragma warning restore 612, 618
         }

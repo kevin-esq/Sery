@@ -24,8 +24,37 @@ public sealed class ConfigureSwaggerOptions(IApiVersionDescriptionProvider provi
             options.IncludeXmlComments(xmlFilePath);
         }
 
+        options.OperationFilter<ApiExamplesOperationFilter>();
+
+        options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+        {
+            Name = "Authorization",
+            Type = SecuritySchemeType.Http,
+            Scheme = "Bearer",
+            BearerFormat = "JWT",
+            In = ParameterLocation.Header,
+            Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\""
+        });
+
+        options.AddSecurityRequirement(new OpenApiSecurityRequirement
+        {
+            {
+                new OpenApiSecurityScheme
+                {
+                    Reference = new OpenApiReference
+                    {
+                        Type = ReferenceType.SecurityScheme,
+                        Id = "Bearer"
+                    }
+                },
+                Array.Empty<string>()
+            }
+        });
+
         options.DocInclusionPredicate((documentName, apiDescription) =>
             string.Equals(apiDescription.GroupName, documentName, StringComparison.OrdinalIgnoreCase));
+
+        options.TagActionsBy(api => [api.GroupName is null ? api.ActionDescriptor.RouteValues["controller"]! : $"{api.ActionDescriptor.RouteValues["controller"]}"]);
     }
 
     private static OpenApiInfo CreateInfoForApiVersion(ApiVersionDescription description)

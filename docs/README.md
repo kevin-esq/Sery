@@ -16,6 +16,7 @@ Editor and formatting rules for the whole repo: [.editorconfig](../.editorconfig
 | Localization                 | [standards/LOCALIZATION.md](standards/LOCALIZATION.md)         |
 | Observability                | [standards/OBSERVABILITY.md](standards/OBSERVABILITY.md)       |
 | API versioning               | [api/API_VERSIONING.md](api/API_VERSIONING.md)                 |
+| Authentication               | [api/AUTHENTICATION.md](api/AUTHENTICATION.md)                 |
 | Controller reference         | [api/controllers/README.md](api/controllers/README.md)         |
 | Repository setup             | [process/REPOSITORY_SETUP.md](process/REPOSITORY_SETUP.md)     |
 | Architecture decisions (ADR) | [adr/README.md](adr/README.md)                                 |

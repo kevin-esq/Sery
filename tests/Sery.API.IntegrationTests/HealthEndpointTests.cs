@@ -11,6 +11,16 @@ public class HealthEndpointTests(ChatWebApplicationFactory factory) : IClassFixt
     {
         HttpClient client = factory.CreateClient();
 
+        HttpResponseMessage response = await client.GetAsync("/api/health");
+
+        response.EnsureSuccessStatusCode();
+    }
+
+    [Fact]
+    public async Task GetHealth_ShouldReturnOk_WhenUsingCompatibilityVersionedRoute()
+    {
+        HttpClient client = factory.CreateClient();
+
         HttpResponseMessage response = await client.GetAsync("/api/v1/health");
 
         response.EnsureSuccessStatusCode();
@@ -22,7 +32,6 @@ public class HealthEndpointTests(ChatWebApplicationFactory factory) : IClassFixt
         HttpClient client = factory.CreateClient();
         var request = new
         {
-            userId = Guid.NewGuid(),
             message = "Hello from integration test"
         };
 
@@ -40,7 +49,6 @@ public class HealthEndpointTests(ChatWebApplicationFactory factory) : IClassFixt
         HttpClient client = factory.CreateClient();
         var request = new
         {
-            userId = Guid.Empty,
             message = " "
         };
 
@@ -49,9 +57,9 @@ public class HealthEndpointTests(ChatWebApplicationFactory factory) : IClassFixt
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         Assert.Equal("SERY-API-400-002", body.GetProperty("code").GetString());
-        Assert.Equal("error.chat.required_userid_message", body.GetProperty("messageKey").GetString());
+        Assert.Equal("error.chat.required_message", body.GetProperty("messageKey").GetString());
         Assert.Equal("Validation failed.", body.GetProperty("title").GetString());
-        Assert.Equal("UserId and Message are required.", body.GetProperty("detail").GetString());
+        Assert.Equal("Message is required.", body.GetProperty("detail").GetString());
     }
 
     [Fact]
@@ -62,7 +70,6 @@ public class HealthEndpointTests(ChatWebApplicationFactory factory) : IClassFixt
 
         var request = new
         {
-            userId = Guid.Empty,
             message = " "
         };
 
@@ -71,8 +78,8 @@ public class HealthEndpointTests(ChatWebApplicationFactory factory) : IClassFixt
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         Assert.Equal("SERY-API-400-002", body.GetProperty("code").GetString());
-        Assert.Equal("error.chat.required_userid_message", body.GetProperty("messageKey").GetString());
+        Assert.Equal("error.chat.required_message", body.GetProperty("messageKey").GetString());
         Assert.Equal("La validación falló.", body.GetProperty("title").GetString());
-        Assert.Equal("Se requieren UserId y Message.", body.GetProperty("detail").GetString());
+        Assert.Equal("El mensaje es obligatorio.", body.GetProperty("detail").GetString());
     }
 }

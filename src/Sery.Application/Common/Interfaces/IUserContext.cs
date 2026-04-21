@@ -1,0 +1,8 @@
+namespace Sery.Application.Common.Interfaces;
+
+public interface IUserContext
+{
+    Guid? UserId { get; }
+    Guid TenantId { get; }
+    string? Email { get; }
+}

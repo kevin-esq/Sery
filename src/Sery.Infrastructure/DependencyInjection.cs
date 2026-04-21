@@ -3,9 +3,12 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Sery.Application.Auth;
 using Sery.Application.Chat;
+using Sery.Application.Common.Interfaces;
 using Sery.Infrastructure.AI;
 using Sery.Infrastructure.AI.Ollama;
+using Sery.Infrastructure.Authentication;
 using Sery.Infrastructure.Persistence;
 
 namespace Sery.Infrastructure;
@@ -37,11 +40,17 @@ public static class DependencyInjection
 
         _ = services.AddDbContext<SeryDbContext>(options =>
             options.UseNpgsql(connectionString));
+        _ = services.AddScoped<IAuthPersistence, EfAuthPersistence>();
         _ = services.AddScoped<IChatPersistence, EfChatPersistence>();
         _ = services.Configure<ChatAIOptions>(configuration.GetSection(ChatAIOptions.SectionName));
 
         _ = services.AddHttpClient<OllamaChatAIService>(client => client.Timeout = TimeSpan.FromMinutes(3));
         _ = services.AddHttpClient<OpenAIChatAIService>(client => client.Timeout = TimeSpan.FromMinutes(3));
+
+        _ = services.AddHttpContextAccessor();
+        _ = services.AddScoped<IUserContext, UserContext>();
+        _ = services.AddScoped<IJwtService, JwtService>();
+        _ = services.AddScoped<IPasswordHasher, PasswordHasher>();
 
         _ = services.AddScoped<IChatAIService>(sp =>
         {
@@ -65,14 +74,6 @@ public static class DependencyInjection
 
     private static string? FirstNonEmpty(params string?[] values)
     {
-        foreach (string? v in values)
-        {
-            if (!string.IsNullOrWhiteSpace(v))
-            {
-                return v;
-            }
-        }
-
-        return null;
+        return values.FirstOrDefault(v => !string.IsNullOrWhiteSpace(v));
     }
 }

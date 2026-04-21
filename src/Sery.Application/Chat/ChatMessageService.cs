@@ -1,6 +1,7 @@
 using System.Runtime.CompilerServices;
 using System.Text;
 using Microsoft.Extensions.Logging;
+using Sery.Application.Common.Interfaces;
 using Sery.Domain.Entities;
 
 namespace Sery.Application.Chat;
@@ -8,6 +9,7 @@ namespace Sery.Application.Chat;
 public sealed class ChatMessageService(
     IChatPersistence chatPersistence,
     IChatAIService chatAIService,
+    IUserContext userContext,
     ILogger<ChatMessageService> logger) : IChatMessageService
 {
     private const int ConversationContextLimit = 20;
@@ -18,10 +20,12 @@ public sealed class ChatMessageService(
         QueueMessageCommand command,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        ConversationContext context = await chatPersistence.GetConversationContextAsync(
-            command.UserId, ConversationContextLimit, cancellationToken);
+        Guid userId = userContext.UserId ?? throw new UnauthorizedAccessException("User is not authenticated");
 
-        Conversation conversation = context.Conversation ?? new Conversation { Id = Guid.NewGuid(), UserId = command.UserId };
+        ConversationContext context = await chatPersistence.GetConversationContextAsync(
+            userId, ConversationContextLimit, cancellationToken);
+
+        Conversation conversation = context.Conversation ?? new Conversation { Id = Guid.NewGuid(), UserId = userId };
         if (context.Conversation is null)
         {
             chatPersistence.AddConversation(conversation);

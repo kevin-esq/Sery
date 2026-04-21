@@ -1,3 +1,3 @@
 namespace Sery.Application.Chat;
 
-public sealed record QueueMessageCommand(Guid UserId, string Message);
+public sealed record QueueMessageCommand(string Message);

@@ -21,12 +21,16 @@ Versioning is **active in code**, not only in documentation:
 - Style: URL segment versioning.
 - Current stable version: `v1`.
 - Route pattern: `api/v{version}/[controller]`.
+- Operational endpoints may be version-neutral when they are not part of the business contract.
+  - Current example: `GET /api/health`
+  - Compatibility route kept: `GET /api/v1/health`
 
 ## Policy
 
 - New breaking changes require a new major API version (`v2`, `v3`, ...).
 - Non-breaking additive changes can be released within current version.
 - Controllers must declare supported version with `[ApiVersion("1.0")]`.
+- Do not rely on implicit defaulting for URL-segment versioning; clients must request the version explicitly on versioned routes.
 
 ## Swagger
 
