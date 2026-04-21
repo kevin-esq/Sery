@@ -5,38 +5,43 @@ Namespace: `Sery.API.Controllers.V1`
 
 ## Endpoint
 
-- `POST /api/chat/message`
-- `POST /api/v1/chat/message`
+- `POST /api/v1/chat/stream`
 
 ## Outcomes
 
-- `202 Accepted`
-  - Message is accepted and queued for processing.
-  - Response contract: `SendMessageAcceptedResponse`.
+- `200 OK`
+  - Response is streamed as Server-Sent Events (`text/event-stream`).
 - `400 Bad Request`
-  - Validation failure (`UserId` empty or `Message` blank).
+  - Validation failure (`Message` blank).
   - Response contract: `ProblemDetails`.
   - Includes:
     - `code`: `SERY-API-400-002`
-    - `messageKey`: `error.chat.required_userid_message`
+    - `messageKey`: `error.chat.required_message`
+- `401 Unauthorized`
+  - Missing or invalid bearer token.
 
 ## Example Request
 
 ```json
 {
-  "userId": "7d06b9f5-2fdb-44d8-88e8-9b2c49a23c5a",
   "message": "Hola Sery, hoy me siento nervioso."
 }
 ```
 
-## Example 202 Response
+Header:
 
-```json
-{
-  "userId": "7d06b9f5-2fdb-44d8-88e8-9b2c49a23c5a",
-  "message": "Hola Sery, hoy me siento nervioso.",
-  "status": "queued"
-}
+```http
+Authorization: Bearer {accessToken}
+```
+
+## Example stream events
+
+```text
+data: {"t":"Hello ","f":false,"c":"11111111-1111-1111-1111-111111111111"}
+
+data: {"t":"from integration stub","f":false,"c":"11111111-1111-1111-1111-111111111111"}
+
+data: {"t":"","f":true,"c":"11111111-1111-1111-1111-111111111111"}
 ```
 
 ## Example 400 Response
@@ -46,9 +51,9 @@ Namespace: `Sery.API.Controllers.V1`
   "type": "https://httpstatuses.com/400",
   "title": "Validation failed.",
   "status": 400,
-  "detail": "UserId and Message are required.",
-  "instance": "/api/v1/chat/message",
+  "detail": "Message is required.",
+  "instance": "/api/v1/chat/stream",
   "code": "SERY-API-400-002",
-  "messageKey": "error.chat.required_userid_message"
+  "messageKey": "error.chat.required_message"
 }
 ```

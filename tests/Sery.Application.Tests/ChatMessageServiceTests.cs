@@ -1,19 +1,28 @@
 using Microsoft.Extensions.Logging.Abstractions;
 using Sery.Application.Chat;
+using Sery.Application.Common.Interfaces;
 using Sery.Domain.Entities;
 
 namespace Sery.Application.Tests;
 
 public class ChatMessageServiceTests
 {
+    private sealed class MockUserContext(Guid userId) : IUserContext
+    {
+        public Guid? UserId => userId;
+        public Guid TenantId => Guid.Empty;
+        public string? Email => "test@example.com";
+    }
+
     [Fact]
     public async Task QueueMessageStreamAsyncShouldPersistAssistantMessageWhenAIResponseSucceeds()
     {
+        var userId = Guid.NewGuid();
         var persistence = new InMemoryChatPersistence();
         var aiService = new StubChatAIService(["Take ", "one small ", "step."]);
-        var service = new ChatMessageService(persistence, aiService, NullLogger<ChatMessageService>.Instance);
-        var userId = Guid.NewGuid();
-        var command = new QueueMessageCommand(userId, "  hello sery  ");
+        var userContext = new MockUserContext(userId);
+        var service = new ChatMessageService(persistence, aiService, userContext, NullLogger<ChatMessageService>.Instance);
+        var command = new QueueMessageCommand("  hello sery  ");
 
         var results = new List<StreamChunkDto>();
         await foreach (StreamChunkDto chunk in service.QueueMessageStreamAsync(command))
@@ -34,10 +43,12 @@ public class ChatMessageServiceTests
     [Fact]
     public async Task QueueMessageStreamAsyncShouldReturnFallbackAndPersistWhenAIFails()
     {
+        var userId = Guid.NewGuid();
         var persistence = new InMemoryChatPersistence();
         var aiService = new ThrowingChatAIService();
-        var service = new ChatMessageService(persistence, aiService, NullLogger<ChatMessageService>.Instance);
-        var command = new QueueMessageCommand(Guid.NewGuid(), "need help");
+        var userContext = new MockUserContext(userId);
+        var service = new ChatMessageService(persistence, aiService, userContext, NullLogger<ChatMessageService>.Instance);
+        var command = new QueueMessageCommand("need help");
 
         var results = new List<StreamChunkDto>();
         await foreach (StreamChunkDto chunk in service.QueueMessageStreamAsync(command))

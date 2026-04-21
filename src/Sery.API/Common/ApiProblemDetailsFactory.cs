@@ -13,24 +13,32 @@ public sealed class ApiProblemDetailsFactory : IApiProblemDetailsFactory
 
     public ProblemDetails CreateValidationProblem(HttpContext context, ApiError error, string? detailOverride = null)
     {
-        string title = Localize(ErrorCatalog.ValidationFailed.MessageKey, ErrorCatalog.ValidationFailed.DefaultMessage);
-        string detail = detailOverride ?? Localize(error.MessageKey, error.DefaultMessage);
+        return CreateProblem(
+            context,
+            StatusCodes.Status400BadRequest,
+            ErrorCatalog.ValidationFailed,
+            error,
+            detailOverride);
+    }
 
-        var problem = new ProblemDetails
-        {
-            Title = title,
-            Status = StatusCodes.Status400BadRequest,
-            Type = "https://httpstatuses.com/400",
-            Detail = detail,
-            Instance = context.Request.Path,
-            Extensions =
-            {
-                ["code"] = error.Code,
-                ["messageKey"] = error.MessageKey
-            }
-        };
+    public ProblemDetails CreateConflictProblem(HttpContext context, ApiError error, string? detailOverride = null)
+    {
+        return CreateProblem(
+            context,
+            StatusCodes.Status409Conflict,
+            error,
+            error,
+            detailOverride);
+    }
 
-        return problem;
+    public ProblemDetails CreateUnauthorizedProblem(HttpContext context, ApiError error, string? detailOverride = null)
+    {
+        return CreateProblem(
+            context,
+            StatusCodes.Status401Unauthorized,
+            error,
+            error,
+            detailOverride);
     }
 
     public ProblemDetails CreateUnexpectedErrorProblem(
@@ -38,23 +46,12 @@ public sealed class ApiProblemDetailsFactory : IApiProblemDetailsFactory
         ApiError error,
         string? detailOverride = null)
     {
-        string title = Localize(error.MessageKey, error.DefaultMessage);
-
-        var problem = new ProblemDetails
-        {
-            Title = title,
-            Status = StatusCodes.Status500InternalServerError,
-            Type = "https://httpstatuses.com/500",
-            Detail = detailOverride,
-            Instance = context.Request.Path,
-            Extensions =
-            {
-                ["code"] = error.Code,
-                ["messageKey"] = error.MessageKey
-            }
-        };
-
-        return problem;
+        return CreateProblem(
+            context,
+            StatusCodes.Status500InternalServerError,
+            error,
+            error,
+            detailOverride);
     }
 
     private static string Localize(string key, string fallback)
@@ -68,5 +65,30 @@ public sealed class ApiProblemDetailsFactory : IApiProblemDetailsFactory
         {
             return fallback;
         }
+    }
+
+    private static ProblemDetails CreateProblem(
+        HttpContext context,
+        int statusCode,
+        ApiError titleError,
+        ApiError detailError,
+        string? detailOverride)
+    {
+        string title = Localize(titleError.MessageKey, titleError.DefaultMessage);
+        string detail = detailOverride ?? Localize(detailError.MessageKey, detailError.DefaultMessage);
+
+        return new ProblemDetails
+        {
+            Title = title,
+            Status = statusCode,
+            Type = $"https://httpstatuses.com/{statusCode}",
+            Detail = detail,
+            Instance = context.Request.Path,
+            Extensions =
+            {
+                ["code"] = detailError.Code,
+                ["messageKey"] = detailError.MessageKey
+            }
+        };
     }
 }

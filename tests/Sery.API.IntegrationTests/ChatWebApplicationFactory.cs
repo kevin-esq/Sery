@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
@@ -18,6 +19,8 @@ public sealed class ChatWebApplicationFactory : WebApplicationFactory<Program>
         {
             services.RemoveAll<IChatMessageService>();
             services.AddScoped<IChatMessageService, StubChatMessageService>();
+            services.AddAuthentication("Test")
+                .AddScheme<AuthenticationSchemeOptions, TestAuthHandler>("Test", _ => { });
         });
     }
 }

@@ -5,7 +5,8 @@ Namespace: `Sery.API.Controllers.V1`
 
 ## Endpoint
 
-- `GET /api/v1/health`
+- `GET /api/health`
+- `GET /api/v1/health` (compatibility route)
 
 ## Outcomes
 
