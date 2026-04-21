@@ -2,7 +2,7 @@ namespace Sery.Application.Chat;
 
 public interface IChatMessageService
 {
-    Task<QueueMessageResult> QueueMessageAsync(
+    IAsyncEnumerable<StreamChunkDto> QueueMessageStreamAsync(
         QueueMessageCommand command,
         CancellationToken cancellationToken = default);
 }

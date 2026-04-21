@@ -1,9 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Sery.Application.Chat;
 using Sery.Infrastructure.AI;
+using Sery.Infrastructure.AI.Ollama;
 using Sery.Infrastructure.Persistence;
 
 namespace Sery.Infrastructure;
@@ -33,24 +35,29 @@ public static class DependencyInjection
 
         connectionString = NpgsqlSupabaseConnection.ApplyPoolerDefaults(connectionString);
 
-        services.AddDbContext<SeryDbContext>(options =>
+        _ = services.AddDbContext<SeryDbContext>(options =>
             options.UseNpgsql(connectionString));
-        services.AddScoped<IChatPersistence, EfChatPersistence>();
-        services.Configure<ChatAIOptions>(configuration.GetSection(ChatAIOptions.SectionName));
+        _ = services.AddScoped<IChatPersistence, EfChatPersistence>();
+        _ = services.Configure<ChatAIOptions>(configuration.GetSection(ChatAIOptions.SectionName));
 
-        services.AddHttpClient<OllamaChatAIService>(client => client.Timeout = TimeSpan.FromMinutes(3));
-        services.AddHttpClient<OpenAIChatAIService>(client => client.Timeout = TimeSpan.FromMinutes(3));
+        _ = services.AddHttpClient<OllamaChatAIService>(client => client.Timeout = TimeSpan.FromMinutes(3));
+        _ = services.AddHttpClient<OpenAIChatAIService>(client => client.Timeout = TimeSpan.FromMinutes(3));
 
-        services.AddScoped<IChatAIService>(sp =>
+        _ = services.AddScoped<IChatAIService>(sp =>
         {
             ChatAIOptions options = sp.GetRequiredService<IOptions<ChatAIOptions>>().Value;
 
-            return options.Provider.Trim().ToLowerInvariant() switch
+            IChatAIService innerService = options.Provider.Trim().ToLowerInvariant() switch
             {
                 "ollama" => sp.GetRequiredService<OllamaChatAIService>(),
                 "openai" => sp.GetRequiredService<OpenAIChatAIService>(),
                 _ => throw new InvalidOperationException($"Unknown ChatAI provider: '{options.Provider}'.")
             };
+
+            return new ModeratedChatAIService(
+                innerService,
+                sp.GetRequiredService<IOptions<ChatAIOptions>>(),
+                sp.GetRequiredService<ILogger<ModeratedChatAIService>>());
         });
 
         return services;

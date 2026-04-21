@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using Sery.Infrastructure.Persistence;
@@ -11,9 +12,11 @@ using Sery.Infrastructure.Persistence;
 namespace Sery.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(SeryDbContext))]
-    partial class SeryDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260421194142_AddUserPreferredLanguage")]
+    partial class AddUserPreferredLanguage
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

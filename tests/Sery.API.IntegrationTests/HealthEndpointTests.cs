@@ -26,14 +26,12 @@ public class HealthEndpointTests(ChatWebApplicationFactory factory) : IClassFixt
             message = "Hello from integration test"
         };
 
-        HttpResponseMessage response = await client.PostAsJsonAsync("/api/v1/chat/message", request);
-        JsonElement body = await response.Content.ReadFromJsonAsync<JsonElement>();
+        HttpResponseMessage response = await client.PostAsJsonAsync("/api/v1/chat/stream", request);
+        string body = await response.Content.ReadAsStringAsync();
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        Assert.Equal(
-            Guid.Parse("11111111-1111-1111-1111-111111111111"),
-            body.GetProperty("conversationId").GetGuid());
-        Assert.Equal("Hello from integration stub", body.GetProperty("assistantMessage").GetString());
+        Assert.Contains("11111111-1111-1111-1111-111111111111", body);
+        Assert.Contains("from integration stub", body);
     }
 
     [Fact]
@@ -46,7 +44,7 @@ public class HealthEndpointTests(ChatWebApplicationFactory factory) : IClassFixt
             message = " "
         };
 
-        HttpResponseMessage response = await client.PostAsJsonAsync("/api/v1/chat/message", request);
+        HttpResponseMessage response = await client.PostAsJsonAsync("/api/v1/chat/stream", request);
         JsonElement body = await response.Content.ReadFromJsonAsync<JsonElement>();
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -68,7 +66,7 @@ public class HealthEndpointTests(ChatWebApplicationFactory factory) : IClassFixt
             message = " "
         };
 
-        HttpResponseMessage response = await client.PostAsJsonAsync("/api/v1/chat/message", request);
+        HttpResponseMessage response = await client.PostAsJsonAsync("/api/v1/chat/stream", request);
         JsonElement body = await response.Content.ReadFromJsonAsync<JsonElement>();
 
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);

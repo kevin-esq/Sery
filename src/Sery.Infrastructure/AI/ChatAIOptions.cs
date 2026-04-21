@@ -44,6 +44,8 @@ public sealed class ChatAIOptions
         -> "That can feel really isolating. Is there someone small you could reach out to, even just to say hi?"
         """;
 
+    public string[] BannedWords { get; init; } = [];
+
     // Future-ready hooks for dynamic behavior; not used yet.
     public string? UserMemorySummary { get; init; }
     public string? ToneProfile { get; init; }
