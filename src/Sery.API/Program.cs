@@ -8,6 +8,21 @@ using Sery.Application;
 using Sery.Infrastructure;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
+{
+    string? dir = Directory.GetCurrentDirectory();
+    for (int i = 0; i < 8 && dir is not null; i++)
+    {
+        string path = Path.Combine(dir, ".env");
+        if (File.Exists(path))
+        {
+            DotNetEnv.Env.Load(path);
+            break;
+        }
+
+        dir = Directory.GetParent(dir)?.FullName;
+    }
+}
+
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 builder.Host.UseSerilog((context, config) =>

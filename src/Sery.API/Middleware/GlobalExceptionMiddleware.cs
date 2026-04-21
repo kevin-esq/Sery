@@ -19,10 +19,9 @@ public sealed class GlobalExceptionMiddleware(
         }
         catch (Exception exception)
         {
-            using (LogContext.PushProperty("errorCode", ErrorCatalog.UnexpectedError.Code))
-            using (LogContext.PushProperty("messageKey", ErrorCatalog.UnexpectedError.MessageKey))
+            using (LogContext.PushProperty("ErrorCode", ErrorCatalog.UnexpectedError.Code))
             {
-                logger.LogError(exception, "Unhandled exception while processing request.");
+                logger.LogError(exception, "Unhandled exception: {Message}", exception.Message);
             }
 
             context.Response.StatusCode = StatusCodes.Status500InternalServerError;
@@ -30,17 +29,14 @@ public sealed class GlobalExceptionMiddleware(
 
             IApiProblemDetailsFactory problemDetailsFactory = context.RequestServices.GetRequiredService<IApiProblemDetailsFactory>();
 
+            string? detail = apiOptions.Value.IncludeExceptionDetails
+                ? exception.ToString()
+                : null;
+
             ProblemDetails problem = problemDetailsFactory.CreateUnexpectedErrorProblem(
                 context,
-                ErrorCatalog.UnexpectedError);
-
-            if (apiOptions.Value.IncludeExceptionDetails)
-            {
-                problem = problemDetailsFactory.CreateUnexpectedErrorProblem(
-                    context,
-                    ErrorCatalog.UnexpectedError,
-                    exception.Message);
-            }
+                ErrorCatalog.UnexpectedError,
+                detail);
 
             await context.Response.WriteAsJsonAsync(problem);
         }

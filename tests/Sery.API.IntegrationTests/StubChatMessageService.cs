@@ -7,11 +7,20 @@ namespace Sery.API.IntegrationTests;
 /// </summary>
 internal sealed class StubChatMessageService : IChatMessageService
 {
-    public Task<QueueMessageResult> QueueMessageAsync(
+    public async IAsyncEnumerable<StreamChunkDto> QueueMessageStreamAsync(
         QueueMessageCommand command,
-        CancellationToken cancellationToken = default)
-        => Task.FromResult(new QueueMessageResult(
-            Guid.Parse("11111111-1111-1111-1111-111111111111"),
-            "Hello from integration stub"));
+        [System.Runtime.CompilerServices.EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        var id = Guid.Parse("11111111-1111-1111-1111-111111111111");
+
+        await Task.Yield();
+        yield return new StreamChunkDto("Hello ", false, id);
+
+        await Task.Yield();
+        yield return new StreamChunkDto("from integration stub", false, id);
+
+        await Task.Yield();
+        yield return new StreamChunkDto(string.Empty, true, id);
+    }
 
 }

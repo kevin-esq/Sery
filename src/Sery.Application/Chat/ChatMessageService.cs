@@ -1,3 +1,5 @@
+using System.Runtime.CompilerServices;
+using System.Text;
 using Microsoft.Extensions.Logging;
 using Sery.Domain.Entities;
 
@@ -12,82 +14,103 @@ public sealed class ChatMessageService(
     private const string FallbackAssistantMessage =
         "I'm having trouble responding right now, but I'm here with you. Want to try again?";
 
-    public async Task<QueueMessageResult> QueueMessageAsync(
+    public async IAsyncEnumerable<StreamChunkDto> QueueMessageStreamAsync(
         QueueMessageCommand command,
-        CancellationToken cancellationToken = default)
+        [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        string sanitizedMessage = command.Message.Trim();
+        ConversationContext context = await chatPersistence.GetConversationContextAsync(
+            command.UserId, ConversationContextLimit, cancellationToken);
 
-        User? user = await chatPersistence.GetUserAsync(command.UserId, cancellationToken);
-        if (user is null)
+        Conversation conversation = context.Conversation ?? new Conversation { Id = Guid.NewGuid(), UserId = command.UserId };
+        if (context.Conversation is null)
         {
-            user = new User { Id = command.UserId };
-            chatPersistence.AddUser(user);
-        }
-
-        Conversation? conversation = await chatPersistence.GetLatestConversationAsync(command.UserId, cancellationToken);
-        if (conversation is null)
-        {
-            conversation = new Conversation
-            {
-                UserId = command.UserId
-            };
-
             chatPersistence.AddConversation(conversation);
         }
 
-        var message = new Message
+        var userMsg = new Message
         {
             ConversationId = conversation.Id,
             Role = MessageRole.User,
-            Content = sanitizedMessage
+            Content = command.Message.Trim()
         };
-
-        chatPersistence.AddMessage(message);
+        chatPersistence.AddMessage(userMsg);
         await chatPersistence.SaveChangesAsync(cancellationToken);
 
-        IReadOnlyList<Message> recentMessages = await chatPersistence.GetRecentMessagesAsync(
-            conversation.Id,
-            ConversationContextLimit,
-            cancellationToken);
+        string systemPrompt = $"You are Sery. Always respond in {context.Language}.";
 
-        List<ChatMessageDto> aiMessages = recentMessages
-            .OrderBy(x => x.CreatedAt)
-            .Select(x => new ChatMessageDto(MapRole(x.Role), x.Content))
-            .ToList();
+        var aiMessages = new List<ChatMessageDto>
+        {
+            new("system", systemPrompt)
+        };
+        aiMessages.AddRange(context.History.Select(m => new ChatMessageDto(MapRole(m.Role), m.Content)));
+        aiMessages.Add(new("user", userMsg.Content));
 
-        string assistantContent;
+        var sb = new StringBuilder();
+
+        IAsyncEnumerator<string> stream = chatAIService.GenerateStreamAsync(aiMessages, cancellationToken).GetAsyncEnumerator(cancellationToken);
+
         try
         {
-            assistantContent = await chatAIService.GenerateResponseAsync(aiMessages, cancellationToken);
-            if (string.IsNullOrWhiteSpace(assistantContent))
+            bool hasMore = true;
+            while (hasMore)
             {
-                assistantContent = FallbackAssistantMessage;
+                string? token = null;
+                try
+                {
+                    if (await stream.MoveNextAsync())
+                    {
+                        token = stream.Current;
+                    }
+                    else
+                    {
+                        hasMore = false;
+                    }
+                }
+                catch (OperationCanceledException)
+                {
+                    logger.LogWarning("Response stream canceled by the user.");
+                    hasMore = false;
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Critical error when contacting the AI service.");
+                    token = FallbackAssistantMessage;
+                    hasMore = false;
+                }
+
+                if (!string.IsNullOrEmpty(token))
+                {
+                    _ = sb.Append(token);
+                    yield return new StreamChunkDto(token, false, conversation.Id);
+                }
             }
         }
-        catch (Exception ex)
+        finally
         {
-            logger.LogError(ex, "Failed to generate assistant response for conversation {ConversationId}", conversation.Id);
-            assistantContent = FallbackAssistantMessage;
+            if (sb.Length > 0)
+            {
+                var assistantMsg = new Message
+                {
+                    ConversationId = conversation.Id,
+                    Role = MessageRole.Assistant,
+                    Content = sb.ToString()
+                };
+                chatPersistence.AddMessage(assistantMsg);
+                await chatPersistence.SaveChangesAsync(CancellationToken.None);
+            }
+            await stream.DisposeAsync();
         }
 
-        var assistantMessage = new Message
-        {
-            ConversationId = conversation.Id,
-            Role = MessageRole.Assistant,
-            Content = assistantContent.Trim()
-        };
-
-        chatPersistence.AddMessage(assistantMessage);
-        await chatPersistence.SaveChangesAsync(cancellationToken);
-
-        return new QueueMessageResult(conversation.Id, assistantMessage.Content);
+        yield return new StreamChunkDto(string.Empty, true, conversation.Id);
     }
 
-    private static string MapRole(MessageRole role) => role switch
+    private static string MapRole(MessageRole role)
     {
-        MessageRole.User => "user",
-        MessageRole.Assistant => "assistant",
-        _ => "user"
-    };
+        return role switch
+        {
+            MessageRole.User => "user",
+            MessageRole.Assistant => "assistant",
+            _ => "user"
+        };
+    }
 }

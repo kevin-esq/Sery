@@ -7,7 +7,7 @@ using Sery.Application.Chat;
 namespace Sery.API.Controllers.V1;
 
 /// <summary>
-/// Exposes chat endpoints for sending user messages.
+/// Exposes chat endpoints for streaming user messages with Server-Sent Events.
 /// </summary>
 [ApiController]
 [ApiVersion("1.0")]
@@ -17,22 +17,25 @@ public sealed class ChatController(
     IApiProblemDetailsFactory problemDetailsFactory) : ControllerBase
 {
     /// <summary>
-    /// Processes a chat message and returns assistant response.
+    /// Streams AI response using Server-Sent Events (SSE).
     /// </summary>
-    /// <param name="request">User message payload.</param>
-    /// <param name="cancellationToken">Cancellation token for request scope.</param>
-    /// <returns>Response containing conversation id and assistant message.</returns>
     /// <remarks>
-    /// Outcomes:
-    /// - 200: Assistant response generated.
-    /// - 400: Validation error when UserId is empty or Message is blank.
+    /// Response is sent as a stream of events.
+    ///
+    /// Each event follows:
+    /// data: {"t":"text chunk","f":false,"c":"conversationId"}
+    ///
+    /// Final event:
+    /// data: {"t":"","f":true,"c":"conversationId"}
+    ///
+    /// Content-Type: text/event-stream
     /// </remarks>
-    [HttpPost("message")]
-    [ProducesResponseType(typeof(SendMessageAcceptedResponse), StatusCodes.Status200OK)]
+    [HttpPost("stream")]
+    [Produces("text/event-stream")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-    [Produces("application/json", "application/problem+json")]
     [Consumes("application/json")]
-    public async Task<IActionResult> SendMessage(
+    public async Task GetStream(
         [FromBody] SendMessageRequest request,
         CancellationToken cancellationToken)
     {
@@ -42,17 +45,23 @@ public sealed class ChatController(
                 HttpContext,
                 ErrorCatalog.RequiredUserIdAndMessage);
 
-            return BadRequest(problem);
+            Response.StatusCode = StatusCodes.Status400BadRequest;
+            await Response.WriteAsJsonAsync(problem, cancellationToken);
+            return;
         }
 
-        var command = new QueueMessageCommand(request.UserId, request.Message);
-        QueueMessageResult result = await chatMessageService.QueueMessageAsync(command, cancellationToken);
-        var response = new SendMessageAcceptedResponse
-        {
-            ConversationId = result.ConversationId,
-            AssistantMessage = result.AssistantMessage
-        };
+        Response.Headers.Append("Content-Type", "text/event-stream");
+        Response.Headers.Append("Cache-Control", "no-cache");
+        Response.Headers.Append("Connection", "keep-alive");
+        Response.Headers.Append("X-Accel-Buffering", "no");
 
-        return Ok(response);
+        var command = new QueueMessageCommand(request.UserId, request.Message);
+
+        await foreach (StreamChunkDto chunk in chatMessageService.QueueMessageStreamAsync(command, cancellationToken))
+        {
+            string json = System.Text.Json.JsonSerializer.Serialize(chunk);
+            await Response.WriteAsync($"data: {json}\n\n", cancellationToken);
+            await Response.Body.FlushAsync(cancellationToken);
+        }
     }
 }

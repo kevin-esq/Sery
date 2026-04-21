@@ -2,5 +2,5 @@ namespace Sery.Application.Chat;
 
 public interface IChatAIService
 {
-    Task<string> GenerateResponseAsync(List<ChatMessageDto> messages, CancellationToken ct);
+    IAsyncEnumerable<string> GenerateStreamAsync(List<ChatMessageDto> messages, CancellationToken ct);
 }

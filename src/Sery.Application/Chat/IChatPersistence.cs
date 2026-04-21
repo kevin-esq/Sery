@@ -2,12 +2,12 @@ using Sery.Domain.Entities;
 
 namespace Sery.Application.Chat;
 
+public record ConversationContext(Conversation? Conversation, IReadOnlyList<Message> History, string Language);
+
 public interface IChatPersistence
 {
-    Task<User?> GetUserAsync(Guid userId, CancellationToken cancellationToken);
-    Task<Conversation?> GetLatestConversationAsync(Guid userId, CancellationToken cancellationToken);
-    Task<IReadOnlyList<Message>> GetRecentMessagesAsync(Guid conversationId, int limit, CancellationToken cancellationToken);
-    void AddUser(User user);
+    Task<ConversationContext> GetConversationContextAsync(Guid userId, int limit, CancellationToken ct);
+
     void AddConversation(Conversation conversation);
     void AddMessage(Message message);
     Task SaveChangesAsync(CancellationToken cancellationToken);

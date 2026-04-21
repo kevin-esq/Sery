@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using Microsoft.Extensions.Primitives;
 using Serilog.Context;
 
 namespace Sery.API.Middleware;
@@ -11,40 +12,57 @@ public sealed class RequestContextLoggingMiddleware(
 
     public async Task Invoke(HttpContext context)
     {
-        string? correlationId = context.Request.Headers[CorrelationHeaderName].FirstOrDefault();
-        correlationId ??= Activity.Current?.TraceId.ToString() ?? context.TraceIdentifier;
+        string correlationId = GetCorrelationId(context);
 
         context.Response.Headers[CorrelationHeaderName] = correlationId;
-        context.Items[CorrelationHeaderName] = correlationId;
 
         string? userId = context.User.Identity?.IsAuthenticated == true
-            ? context.User.FindFirst("sub")?.Value ?? context.User.Identity?.Name
-            : null;
+            ? context.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+            : "anonymous";
 
-        var stopwatch = Stopwatch.StartNew();
-
-        using (LogContext.PushProperty("requestId", correlationId))
-        using (LogContext.PushProperty("route", context.Request.Path.Value ?? string.Empty))
-        using (LogContext.PushProperty("method", context.Request.Method))
-        using (LogContext.PushProperty("userId", userId ?? string.Empty))
+        var scopeItems = new Dictionary<string, object>
         {
-            using (logger.BeginScope(new Dictionary<string, object?>
-            {
-                ["CorrelationId"] = correlationId,
-                ["Path"] = context.Request.Path.Value,
-                ["Method"] = context.Request.Method
-            }))
+            ["CorrelationId"] = correlationId,
+            ["UserId"] = userId!,
+            ["RemoteIp"] = context.Connection.RemoteIpAddress?.ToString() ?? "unknown"
+        };
+
+        using (logger.BeginScope(scopeItems))
+        using (LogContext.PushProperty("CorrelationId", correlationId))
+        {
+            var stopwatch = Stopwatch.StartNew();
+            try
             {
                 await next(context);
 
                 stopwatch.Stop();
-                logger.LogInformation(
+
+                LogLevel level = context.Response.StatusCode >= 500 ? LogLevel.Error : LogLevel.Information;
+
+                logger.Log(level,
                     "HTTP {Method} {Path} responded {StatusCode} in {ElapsedMs} ms",
                     context.Request.Method,
                     context.Request.Path.Value,
                     context.Response.StatusCode,
                     stopwatch.ElapsedMilliseconds);
             }
+            catch (Exception ex)
+            {
+                stopwatch.Stop();
+                logger.LogError(ex, "An unhandled exception occurred during {Method} {Path}",
+                    context.Request.Method, context.Request.Path.Value);
+                throw;
+            }
         }
+    }
+
+    private static string GetCorrelationId(HttpContext context)
+    {
+        if (context.Request.Headers.TryGetValue(CorrelationHeaderName, out StringValues headerId))
+        {
+            return headerId.FirstOrDefault()!;
+        }
+
+        return Activity.Current?.TraceId.ToString() ?? context.TraceIdentifier;
     }
 }

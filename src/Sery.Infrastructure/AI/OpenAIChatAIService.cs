@@ -1,5 +1,7 @@
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Runtime.CompilerServices;
+using System.Text.Json;
 using Microsoft.Extensions.Options;
 using Sery.Application.Chat;
 
@@ -18,7 +20,7 @@ public sealed class OpenAIChatAIService(
         "Be slightly more curious and ask questions."
     ];
 
-    public async Task<string> GenerateResponseAsync(List<ChatMessageDto> messages, CancellationToken ct)
+    public async IAsyncEnumerable<string> GenerateStreamAsync(List<ChatMessageDto> messages, [EnumeratorCancellation] CancellationToken ct)
     {
         if (string.IsNullOrWhiteSpace(_options.ApiKey))
         {
@@ -37,29 +39,39 @@ public sealed class OpenAIChatAIService(
             _options.Model,
             [new ApiMessage("system", requestSystemPrompt), .. messages.Select(x => new ApiMessage(x.Role, x.Content))]);
 
-        using HttpResponseMessage response = await httpClient.PostAsJsonAsync("/v1/chat/completions", request, ct);
-        response.EnsureSuccessStatusCode();
+        using HttpResponseMessage response = await httpClient.PostAsJsonAsync("/v1/chat/completions", request, JsonSerializerOptions.Default, ct);
+        _ = response.EnsureSuccessStatusCode();
 
-        ChatCompletionsResponse? body = await response.Content.ReadFromJsonAsync<ChatCompletionsResponse>(cancellationToken: ct);
-        string? content = body?.Choices?.FirstOrDefault()?.Message?.Content;
-        return content?.Trim() ?? string.Empty;
+        using Stream stream = await response.Content.ReadAsStreamAsync(ct);
+        using var reader = new StreamReader(stream);
+
+        while (!reader.EndOfStream)
+        {
+            string? line = await reader.ReadLineAsync(ct);
+            if (string.IsNullOrWhiteSpace(line) || !line.StartsWith("data: "))
+            {
+                continue;
+            }
+
+            string dataLine = line[6..].Trim();
+            if (dataLine == "[DONE]")
+            {
+                break;
+            }
+
+            ChatCompletionsChunk? chunk = JsonSerializer.Deserialize<ChatCompletionsChunk>(dataLine, JsonSerializerOptions.Default);
+            string? content = chunk?.Choices?.FirstOrDefault()?.Delta?.Content;
+            if (content != null)
+            {
+                yield return content;
+            }
+        }
     }
 
-    private sealed record ChatCompletionsRequest(string Model, List<ApiMessage> Messages);
+    private sealed record ChatCompletionsRequest(string Model, List<ApiMessage> Messages, bool Stream = true);
     private sealed record ApiMessage(string Role, string Content);
 
-    private sealed class ChatCompletionsResponse
-    {
-        public List<Choice> Choices { get; init; } = [];
-    }
-
-    private sealed class Choice
-    {
-        public ResponseMessage Message { get; init; } = new();
-    }
-
-    private sealed class ResponseMessage
-    {
-        public string Content { get; init; } = string.Empty;
-    }
+    private sealed class ChatCompletionsChunk { public List<ChunkChoice> Choices { get; init; } = []; }
+    private sealed class ChunkChoice { public ChunkDelta Delta { get; init; } = new(); }
+    private sealed class ChunkDelta { public string? Content { get; init; } }
 }

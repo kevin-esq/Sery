@@ -7,5 +7,5 @@ public sealed class Conversation
     public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
 
     public User? User { get; init; }
-    public ICollection<Message> Messages { get; init; } = new List<Message>();
+    public ICollection<Message> Messages { get; init; } = [];
 }
