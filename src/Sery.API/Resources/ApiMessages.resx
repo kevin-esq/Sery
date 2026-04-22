@@ -64,11 +64,20 @@
   <data name="error.chat.required_message" xml:space="preserve">
     <value>Message is required.</value>
   </data>
+  <data name="error.conversation.invalid_update" xml:space="preserve">
+    <value>At least one conversation field must be provided.</value>
+  </data>
+  <data name="error.conversation.invalid_title" xml:space="preserve">
+    <value>Conversation title must not be empty and must be shorter than 120 characters.</value>
+  </data>
   <data name="error.chat.required_userid_message" xml:space="preserve">
     <value>UserId and Message are required.</value>
   </data>
   <data name="error.auth.user_exists" xml:space="preserve">
     <value>User already exists.</value>
+  </data>
+  <data name="error.conversation.not_found" xml:space="preserve">
+    <value>Conversation was not found.</value>
   </data>
   <data name="error.auth.invalid_credentials" xml:space="preserve">
     <value>Invalid credentials.</value>

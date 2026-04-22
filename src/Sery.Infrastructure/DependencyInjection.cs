@@ -3,10 +3,13 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Sery.Application.AgentCustomization;
 using Sery.Application.Auth;
 using Sery.Application.Chat;
 using Sery.Application.Common.Interfaces;
+using Sery.Application.Conversations;
 using Sery.Infrastructure.AI;
+using Sery.Infrastructure.AI.Gemini;
 using Sery.Infrastructure.AI.Ollama;
 using Sery.Infrastructure.Authentication;
 using Sery.Infrastructure.Persistence;
@@ -41,16 +44,23 @@ public static class DependencyInjection
         _ = services.AddDbContext<SeryDbContext>(options =>
             options.UseNpgsql(connectionString));
         _ = services.AddScoped<IAuthPersistence, EfAuthPersistence>();
+        _ = services.AddScoped<IAgentCustomizationPersistence, EfAgentCustomizationPersistence>();
         _ = services.AddScoped<IChatPersistence, EfChatPersistence>();
+        _ = services.AddScoped<IConversationPersistence, EfConversationPersistence>();
         _ = services.Configure<ChatAIOptions>(configuration.GetSection(ChatAIOptions.SectionName));
 
         _ = services.AddHttpClient<OllamaChatAIService>(client => client.Timeout = TimeSpan.FromMinutes(3));
         _ = services.AddHttpClient<OpenAIChatAIService>(client => client.Timeout = TimeSpan.FromMinutes(3));
+        _ = services.AddHttpClient<GeminiChatAIService>(client => client.Timeout = TimeSpan.FromMinutes(3));
 
         _ = services.AddHttpContextAccessor();
         _ = services.AddScoped<IUserContext, UserContext>();
         _ = services.AddScoped<IJwtService, JwtService>();
         _ = services.AddScoped<IPasswordHasher, PasswordHasher>();
+        _ = services.AddScoped<IAgentPersonaProvider, OptionsBackedAgentPersonaProvider>();
+        _ = services.AddScoped<ITurnStateInterpreter, AIBackedTurnStateInterpreter>();
+        _ = services.AddScoped<IResponseCritic, AIBackedResponseCritic>();
+        _ = services.AddScoped<IChatPromptComposer, DefaultChatPromptComposer>();
 
         _ = services.AddScoped<IChatAIService>(sp =>
         {
@@ -60,6 +70,7 @@ public static class DependencyInjection
             {
                 "ollama" => sp.GetRequiredService<OllamaChatAIService>(),
                 "openai" => sp.GetRequiredService<OpenAIChatAIService>(),
+                "gemini" => sp.GetRequiredService<GeminiChatAIService>(),
                 _ => throw new InvalidOperationException($"Unknown ChatAI provider: '{options.Provider}'.")
             };
 

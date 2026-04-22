@@ -64,11 +64,20 @@
   <data name="error.chat.required_message" xml:space="preserve">
     <value>El mensaje es obligatorio.</value>
   </data>
+  <data name="error.conversation.invalid_update" xml:space="preserve">
+    <value>Debes enviar al menos un campo de la conversación.</value>
+  </data>
+  <data name="error.conversation.invalid_title" xml:space="preserve">
+    <value>El título de la conversación no puede estar vacío y debe tener menos de 120 caracteres.</value>
+  </data>
   <data name="error.chat.required_userid_message" xml:space="preserve">
     <value>Se requieren UserId y Message.</value>
   </data>
   <data name="error.auth.user_exists" xml:space="preserve">
     <value>El usuario ya existe.</value>
+  </data>
+  <data name="error.conversation.not_found" xml:space="preserve">
+    <value>No se encontró la conversación.</value>
   </data>
   <data name="error.auth.invalid_credentials" xml:space="preserve">
     <value>Credenciales inválidas.</value>

@@ -12,10 +12,30 @@ public static class ErrorCatalog
         "error.chat.required_message",
         "Message is required.");
 
+    public static readonly ApiError InvalidConversationUpdate = new(
+        "SERY-API-400-003",
+        "error.conversation.invalid_update",
+        "At least one conversation field must be provided.");
+
+    public static readonly ApiError InvalidConversationTitle = new(
+        "SERY-API-400-004",
+        "error.conversation.invalid_title",
+        "Conversation title must not be empty and must be shorter than 120 characters.");
+
+    public static readonly ApiError InvalidAgentCustomization = new(
+        "SERY-API-400-005",
+        "error.agent.invalid_customization",
+        "Agent customization payload is invalid.");
+
     public static readonly ApiError UserAlreadyExists = new(
         "SERY-API-409-001",
         "error.auth.user_exists",
         "User already exists.");
+
+    public static readonly ApiError ConversationNotFound = new(
+        "SERY-API-404-001",
+        "error.conversation.not_found",
+        "Conversation was not found.");
 
     public static readonly ApiError InvalidCredentials = new(
         "SERY-API-401-001",

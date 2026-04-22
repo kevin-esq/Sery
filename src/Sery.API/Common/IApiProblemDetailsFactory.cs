@@ -8,6 +8,8 @@ public interface IApiProblemDetailsFactory
 
     ProblemDetails CreateConflictProblem(HttpContext context, ApiError error, string? detailOverride = null);
 
+    ProblemDetails CreateNotFoundProblem(HttpContext context, ApiError error, string? detailOverride = null);
+
     ProblemDetails CreateUnauthorizedProblem(HttpContext context, ApiError error, string? detailOverride = null);
 
     ProblemDetails CreateUnexpectedErrorProblem(HttpContext context, ApiError error, string? detailOverride = null);

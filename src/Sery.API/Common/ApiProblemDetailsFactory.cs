@@ -31,6 +31,16 @@ public sealed class ApiProblemDetailsFactory : IApiProblemDetailsFactory
             detailOverride);
     }
 
+    public ProblemDetails CreateNotFoundProblem(HttpContext context, ApiError error, string? detailOverride = null)
+    {
+        return CreateProblem(
+            context,
+            StatusCodes.Status404NotFound,
+            error,
+            error,
+            detailOverride);
+    }
+
     public ProblemDetails CreateUnauthorizedProblem(HttpContext context, ApiError error, string? detailOverride = null)
     {
         return CreateProblem(
