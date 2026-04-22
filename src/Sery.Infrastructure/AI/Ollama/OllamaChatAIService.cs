@@ -18,13 +18,6 @@ public sealed class OllamaChatAIService : IChatAIService
         PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower
     };
 
-    private static readonly string[] ToneModifiers = [
-        "Be slightly more direct and practical.",
-        "Be more warm and empathetic.",
-        "Be a bit more concise and focused.",
-        "Be slightly more curious and ask questions."
-    ];
-
     public OllamaChatAIService(
         HttpClient httpClient,
         IOptions<ChatAIOptions> options,
@@ -44,14 +37,8 @@ public sealed class OllamaChatAIService : IChatAIService
 
     public async IAsyncEnumerable<string> GenerateStreamAsync(List<ChatMessageDto> messages, [EnumeratorCancellation] CancellationToken ct)
     {
-        string toneModifier = ToneModifiers[Random.Shared.Next(ToneModifiers.Length)];
-        string requestSystemPrompt = $"{_options.SystemPrompt}\n\nAdditional style guidance: {toneModifier}";
-
-        var apiMessages = new List<OllamaApiMessage>(messages.Count + 1)
-        {
-            new("system", requestSystemPrompt)
-        };
-        apiMessages.AddRange(messages.Select(static m => new OllamaApiMessage(m.Role, m.Content)));
+        IReadOnlyList<ChatMessageDto> requestMessages = ChatAIRequestHelper.BuildProviderMessages(messages);
+        var apiMessages = requestMessages.Select(static m => new OllamaApiMessage(m.Role, m.Content)).ToList();
 
         var request = new OllamaChatRequest(_options.Model, true, apiMessages);
 
@@ -77,4 +64,3 @@ public sealed class OllamaChatAIService : IChatAIService
         }
     }
 }
-

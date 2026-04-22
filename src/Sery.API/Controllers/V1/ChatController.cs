@@ -58,7 +58,7 @@ public sealed class ChatController(
         Response.Headers.Append("Connection", "keep-alive");
         Response.Headers.Append("X-Accel-Buffering", "no");
 
-        var command = new QueueMessageCommand(request.Message);
+        var command = new QueueMessageCommand(request.Message, request.ConversationId);
 
         await foreach (StreamChunkDto chunk in chatMessageService.QueueMessageStreamAsync(command, cancellationToken))
         {

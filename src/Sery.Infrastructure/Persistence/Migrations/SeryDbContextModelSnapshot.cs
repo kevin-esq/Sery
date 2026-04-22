@@ -31,12 +31,37 @@ namespace Sery.Infrastructure.Persistence.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<bool>("IsArchived")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsPinned")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsTitleGenerated")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("LastMessageAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Summary")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<Guid>("UserId")
                         .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
                     b.HasIndex("UserId");
+
+                    b.HasIndex("UserId", "IsPinned", "LastMessageAt");
 
                     b.ToTable("conversations", (string)null);
                 });
@@ -101,6 +126,191 @@ namespace Sery.Infrastructure.Persistence.Migrations
                     b.ToTable("users", (string)null);
                 });
 
+            modelBuilder.Entity("Sery.Domain.Entities.UserAgentCustomization", b =>
+                {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("AllowsRomanticFraming")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("AskFollowUpQuestions")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("Charisma")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Closeness")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("CoreDemeanor")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("Directness")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("EmotionalExpressiveness")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Flirtiness")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("IdentityPresentation")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("OfferActionSteps")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("Playfulness")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("PreferredResponseLength")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("PrioritizeSupportOverRoleplay")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("Proactivity")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Protectiveness")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Reflection")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("RelationshipMode")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("Sincerity")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Tenderness")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("UsesAffectionateLanguage")
+                        .HasColumnType("boolean");
+
+                    b.Property<int>("Warmth")
+                        .HasColumnType("integer");
+
+                    b.HasKey("UserId");
+
+                    b.ToTable("user_agent_customizations", (string)null);
+                });
+
+            modelBuilder.Entity("Sery.Domain.Entities.UserChatEfficacyProfile", b =>
+                {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("PreferredActionStyle")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("PreferredConversationMode")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("PreferredPacing")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("PreferredQuestionStyle")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("PreferredResponseLength")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("SuccessfulStrategiesSummary")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("UserId");
+
+                    b.ToTable("user_chat_efficacy_profiles", (string)null);
+                });
+
+            modelBuilder.Entity("Sery.Domain.Entities.UserEmotionalMemory", b =>
+                {
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("DominantEmotion")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Summary")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("UserId");
+
+                    b.ToTable("user_emotional_memories", (string)null);
+                });
+
+            modelBuilder.Entity("Sery.Domain.Entities.UserMemoryFact", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("LastSeenAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("NormalizedKey")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<Guid?>("SourceConversationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SourceConversationId");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("UserId", "LastSeenAt");
+
+                    b.HasIndex("UserId", "NormalizedKey")
+                        .IsUnique();
+
+                    b.ToTable("user_memory_facts", (string)null);
+                });
+
             modelBuilder.Entity("Sery.Domain.Entities.UserSession", b =>
                 {
                     b.Property<Guid>("Id")
@@ -158,6 +368,57 @@ namespace Sery.Infrastructure.Persistence.Migrations
                     b.Navigation("Conversation");
                 });
 
+            modelBuilder.Entity("Sery.Domain.Entities.UserAgentCustomization", b =>
+                {
+                    b.HasOne("Sery.Domain.Entities.User", "User")
+                        .WithOne("AgentCustomization")
+                        .HasForeignKey("Sery.Domain.Entities.UserAgentCustomization", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Sery.Domain.Entities.UserChatEfficacyProfile", b =>
+                {
+                    b.HasOne("Sery.Domain.Entities.User", "User")
+                        .WithOne("ChatEfficacyProfile")
+                        .HasForeignKey("Sery.Domain.Entities.UserChatEfficacyProfile", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Sery.Domain.Entities.UserEmotionalMemory", b =>
+                {
+                    b.HasOne("Sery.Domain.Entities.User", "User")
+                        .WithOne("EmotionalMemory")
+                        .HasForeignKey("Sery.Domain.Entities.UserEmotionalMemory", "UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Sery.Domain.Entities.UserMemoryFact", b =>
+                {
+                    b.HasOne("Sery.Domain.Entities.Conversation", "SourceConversation")
+                        .WithMany()
+                        .HasForeignKey("SourceConversationId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Sery.Domain.Entities.User", "User")
+                        .WithMany("MemoryFacts")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("SourceConversation");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Sery.Domain.Entities.UserSession", b =>
                 {
                     b.HasOne("Sery.Domain.Entities.User", "User")
@@ -176,7 +437,15 @@ namespace Sery.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("Sery.Domain.Entities.User", b =>
                 {
+                    b.Navigation("AgentCustomization");
+
+                    b.Navigation("ChatEfficacyProfile");
+
                     b.Navigation("Conversations");
+
+                    b.Navigation("EmotionalMemory");
+
+                    b.Navigation("MemoryFacts");
 
                     b.Navigation("Sessions");
                 });

@@ -11,4 +11,8 @@ public sealed class User
 
     public ICollection<UserSession> Sessions { get; init; } = [];
     public ICollection<Conversation> Conversations { get; init; } = [];
+    public ICollection<UserMemoryFact> MemoryFacts { get; init; } = [];
+    public UserEmotionalMemory? EmotionalMemory { get; set; }
+    public UserChatEfficacyProfile? ChatEfficacyProfile { get; set; }
+    public UserAgentCustomization? AgentCustomization { get; set; }
 }

@@ -4,8 +4,10 @@ Per-controller reference pages live in this folder. Global API rules are in [../
 
 ## Index
 
+- [AgentCustomizationController](AgentCustomizationController.md)
 - [AuthController](AuthController.md)
 - [ChatController](ChatController.md)
+- [ConversationsController](ConversationsController.md)
 - [HealthController](HealthController.md)
 
 ## Conventions (`src/Sery.API/Controllers`)
