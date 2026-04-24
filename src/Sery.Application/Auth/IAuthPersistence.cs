@@ -27,5 +27,9 @@ public interface IAuthPersistence
 
     void RemoveSession(UserSession session);
 
+    Task<int> GetActiveSessionCountAsync(Guid userId, CancellationToken cancellationToken);
+
+    Task RemoveOldestSessionAsync(Guid userId, CancellationToken cancellationToken);
+
     Task SaveChangesAsync(CancellationToken cancellationToken);
 }

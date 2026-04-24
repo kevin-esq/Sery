@@ -57,7 +57,6 @@ public sealed class ApiExamplesOperationFilter : IOperationFilter
 
         if (method == "POST" && path == "/api/v{version:apiversion}/auth/refresh")
         {
-            SetJsonRequestExample(operation, CreateRefreshExample());
             SetJsonResponseExample(operation, context, "200", typeof(AuthResponse), CreateAuthResponseExample());
             SetProblemResponseExample(operation, context, "401", CreateProblemExample(
                 "https://httpstatuses.com/401",
@@ -72,7 +71,6 @@ public sealed class ApiExamplesOperationFilter : IOperationFilter
 
         if (method == "POST" && path == "/api/v{version:apiversion}/auth/logout")
         {
-            SetJsonRequestExample(operation, CreateRefreshExample());
             SetProblemResponseExample(operation, context, "401", CreateProblemExample(
                 "https://httpstatuses.com/401",
                 "Authentication is required.",
@@ -113,7 +111,6 @@ public sealed class ApiExamplesOperationFilter : IOperationFilter
 
         if (method == "DELETE" && path == "/api/v{version:apiversion}/auth/sessions/other")
         {
-            SetJsonRequestExample(operation, CreateRevokeOthersExample());
             SetProblemResponseExample(operation, context, "401", CreateProblemExample(
                 "https://httpstatuses.com/401",
                 "Authentication is required.",
@@ -417,21 +414,7 @@ public sealed class ApiExamplesOperationFilter : IOperationFilter
 
     private static OpenApiObject CreateLoginExample() => CreateRegisterExample();
 
-    private static OpenApiObject CreateRefreshExample()
-    {
-        return new OpenApiObject
-        {
-            ["refreshToken"] = new OpenApiString("9kV6j7YwQm5m7pP4Q9Q4lX2fB1P5vC1e8vQv2d4...")
-        };
-    }
 
-    private static OpenApiObject CreateRevokeOthersExample()
-    {
-        return new OpenApiObject
-        {
-            ["currentRefreshToken"] = new OpenApiString("9kV6j7YwQm5m7pP4Q9Q4lX2fB1P5vC1e8vQv2d4...")
-        };
-    }
 
     private static OpenApiObject CreateChatStreamExample()
     {
@@ -446,8 +429,7 @@ public sealed class ApiExamplesOperationFilter : IOperationFilter
     {
         return new OpenApiObject
         {
-            ["accessToken"] = new OpenApiString("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."),
-            ["refreshToken"] = new OpenApiString("9kV6j7YwQm5m7pP4Q9Q4lX2fB1P5vC1e8vQv2d4...")
+            ["accessToken"] = new OpenApiString("eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...")
         };
     }
 

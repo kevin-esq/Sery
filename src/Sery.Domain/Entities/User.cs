@@ -8,6 +8,8 @@ public sealed class User
     public Guid TenantId { get; init; } = Guid.Empty;
     public DateTime CreatedAt { get; init; } = DateTime.UtcNow;
     public string PreferredLanguage { get; init; } = "es";
+    public int FailedLoginAttempts { get; set; }
+    public DateTime? LockoutEnd { get; set; }
 
     public ICollection<UserSession> Sessions { get; init; } = [];
     public ICollection<Conversation> Conversations { get; init; } = [];

@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace Sery.API.Contracts.Auth;
 
 /// <summary>
@@ -9,11 +11,16 @@ public sealed class LoginRequest
     /// User email address.
     /// </summary>
     /// <example>user@example.com</example>
+    [Required]
+    [EmailAddress]
+    [MaxLength(320)]
     public string Email { get; init; } = string.Empty;
 
     /// <summary>
     /// Plain text password.
     /// </summary>
     /// <example>P@ssw0rd123!</example>
+    [Required]
+    [MaxLength(128)]
     public string Password { get; init; } = string.Empty;
 }

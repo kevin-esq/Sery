@@ -9,9 +9,18 @@ public sealed class AuthService(
     IJwtService jwtService) : IAuthService
 {
     private static readonly TimeSpan RefreshTokenLifetime = TimeSpan.FromDays(7);
+    private const int MaxFailedLoginAttempts = 5;
+    private static readonly TimeSpan LockoutDuration = TimeSpan.FromMinutes(15);
+    private const int MaxSessionsPerUser = 5;
 
     public async Task<AuthResult> RegisterAsync(RegisterUserCommand command, CancellationToken cancellationToken = default)
     {
+        PasswordValidationResult passwordValidation = PasswordValidator.Validate(command.Password);
+        if (passwordValidation != PasswordValidationResult.Valid)
+        {
+            return AuthResult.Failure(AuthError.WeakPassword);
+        }
+
         string normalizedEmail = NormalizeEmail(command.Email);
         bool userExists = await authPersistence.UserExistsByEmailAsync(normalizedEmail, cancellationToken);
         if (userExists)
@@ -29,7 +38,7 @@ public sealed class AuthService(
 
         authPersistence.AddUser(user);
 
-        AuthTokens tokens = CreateSession(user, command.DeviceInfo, command.IpAddress);
+        AuthTokens tokens = await CreateSession(user, command.DeviceInfo, command.IpAddress, cancellationToken);
         await authPersistence.SaveChangesAsync(cancellationToken);
 
         return AuthResult.Success(tokens);
@@ -39,12 +48,34 @@ public sealed class AuthService(
     {
         string normalizedEmail = NormalizeEmail(command.Email);
         User? user = await authPersistence.GetUserByEmailAsync(normalizedEmail, cancellationToken);
-        if (user is null || !passwordHasher.VerifyPassword(command.Password, user.PasswordHash))
+
+        if (user is null)
         {
             return AuthResult.Failure(AuthError.InvalidCredentials);
         }
 
-        AuthTokens tokens = CreateSession(user, command.DeviceInfo, command.IpAddress);
+        if (user.LockoutEnd.HasValue && user.LockoutEnd.Value > DateTime.UtcNow)
+        {
+            return AuthResult.Failure(AuthError.InvalidCredentials);
+        }
+
+        if (!passwordHasher.VerifyPassword(command.Password, user.PasswordHash))
+        {
+            user.FailedLoginAttempts++;
+
+            if (user.FailedLoginAttempts >= MaxFailedLoginAttempts)
+            {
+                user.LockoutEnd = DateTime.UtcNow.Add(LockoutDuration);
+            }
+
+            await authPersistence.SaveChangesAsync(cancellationToken);
+            return AuthResult.Failure(AuthError.InvalidCredentials);
+        }
+
+        user.FailedLoginAttempts = 0;
+        user.LockoutEnd = null;
+
+        AuthTokens tokens = await CreateSession(user, command.DeviceInfo, command.IpAddress, cancellationToken);
         await authPersistence.SaveChangesAsync(cancellationToken);
 
         return AuthResult.Success(tokens);
@@ -124,8 +155,14 @@ public sealed class AuthService(
         await authPersistence.SaveChangesAsync(cancellationToken);
     }
 
-    private AuthTokens CreateSession(User user, string? deviceInfo, string? ipAddress)
+    private async Task<AuthTokens> CreateSession(User user, string? deviceInfo, string? ipAddress, CancellationToken cancellationToken)
     {
+        int currentSessionCount = await authPersistence.GetActiveSessionCountAsync(user.Id, cancellationToken);
+        if (currentSessionCount >= MaxSessionsPerUser)
+        {
+            await authPersistence.RemoveOldestSessionAsync(user.Id, cancellationToken);
+        }
+
         string refreshToken = jwtService.GenerateRefreshToken();
         var session = new UserSession
         {

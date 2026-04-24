@@ -52,6 +52,16 @@ public static class ErrorCatalog
         "error.auth.unauthorized",
         "Authentication is required.");
 
+    public static readonly ApiError WeakPassword = new(
+        "SERY-API-400-006",
+        "error.auth.weak_password",
+        "Password does not meet the minimum security requirements.");
+
+    public static readonly ApiError RateLimitExceeded = new(
+        "SERY-API-429-001",
+        "error.rate_limit_exceeded",
+        "Too many requests. Please try again later.");
+
     public static readonly ApiError UnexpectedError = new(
         "SERY-API-500-001",
         "error.unexpected",

@@ -14,7 +14,7 @@ public sealed class AuthServiceTests
         var service = new AuthService(persistence, new StubPasswordHasher(), jwtService);
 
         AuthResult result = await service.RegisterAsync(
-            new RegisterUserCommand("USER@Example.com", "secret", "Chrome", "127.0.0.1"));
+            new RegisterUserCommand("USER@Example.com", "Secret1x", "Chrome", "127.0.0.1"));
 
         Assert.True(result.Succeeded);
         User user = Assert.Single(persistence.Users);
@@ -49,7 +49,7 @@ public sealed class AuthServiceTests
         Assert.False(result.Succeeded);
         Assert.Equal(AuthError.InvalidCredentials, result.Error);
         Assert.Empty(persistence.Sessions);
-        Assert.Equal(0, persistence.SaveChangesCalls);
+        Assert.Equal(1, persistence.SaveChangesCalls);
     }
 
     [Fact]
@@ -174,6 +174,27 @@ public sealed class AuthServiceTests
         public void RemoveSession(UserSession session)
         {
             _ = Sessions.Remove(session);
+        }
+
+        public Task<int> GetActiveSessionCountAsync(Guid userId, CancellationToken cancellationToken)
+        {
+            int count = Sessions.Count(x => x.UserId == userId && x.ExpiresAt > DateTime.UtcNow);
+            return Task.FromResult(count);
+        }
+
+        public Task RemoveOldestSessionAsync(Guid userId, CancellationToken cancellationToken)
+        {
+            UserSession? oldest = Sessions
+                .Where(x => x.UserId == userId)
+                .OrderBy(x => x.CreatedAt)
+                .FirstOrDefault();
+
+            if (oldest is not null)
+            {
+                Sessions.Remove(oldest);
+            }
+
+            return Task.CompletedTask;
         }
 
         public Task SaveChangesAsync(CancellationToken cancellationToken)

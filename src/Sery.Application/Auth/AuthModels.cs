@@ -14,7 +14,8 @@ public enum AuthError
     None = 0,
     UserAlreadyExists = 1,
     InvalidCredentials = 2,
-    InvalidRefreshToken = 3
+    InvalidRefreshToken = 3,
+    WeakPassword = 4
 }
 
 public sealed record AuthResult(bool Succeeded, AuthError Error, AuthTokens? Tokens)

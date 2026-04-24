@@ -91,4 +91,10 @@
   <data name="error.unexpected" xml:space="preserve">
     <value>An unexpected error occurred.</value>
   </data>
+  <data name="error.auth.weak_password" xml:space="preserve">
+    <value>Password does not meet the minimum security requirements.</value>
+  </data>
+  <data name="error.rate_limit_exceeded" xml:space="preserve">
+    <value>Too many requests. Please try again later.</value>
+  </data>
 </root>

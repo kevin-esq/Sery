@@ -77,6 +77,25 @@ public sealed class EfAuthPersistence(SeryDbContext dbContext) : IAuthPersistenc
         _ = dbContext.UserSessions.Remove(session);
     }
 
+    public Task<int> GetActiveSessionCountAsync(Guid userId, CancellationToken cancellationToken)
+    {
+        return dbContext.UserSessions
+            .CountAsync(x => x.UserId == userId && x.ExpiresAt > DateTime.UtcNow, cancellationToken);
+    }
+
+    public async Task RemoveOldestSessionAsync(Guid userId, CancellationToken cancellationToken)
+    {
+        UserSession? oldest = await dbContext.UserSessions
+            .Where(x => x.UserId == userId)
+            .OrderBy(x => x.CreatedAt)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (oldest is not null)
+        {
+            _ = dbContext.UserSessions.Remove(oldest);
+        }
+    }
+
     public async Task SaveChangesAsync(CancellationToken cancellationToken)
     {
         _ = await dbContext.SaveChangesAsync(cancellationToken);
